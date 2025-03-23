@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Sorting Animation - Horizontal Arrangement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #message-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            position: relative;
+        }
+
+        .message {
+            width: 5px;
+            height: 30px; /* 将高度变为原来的三倍 */
+            cursor: pointer;
+            position: absolute;
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+        }
+
+        #timeline {
+            position: relative;
+            width: 800px;
+            height: 60px;
+            border: 1px solid #ccc;
+        }
+
+        .time-period {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            border-right: 1px solid #ccc;
+        }
+
+        .small-period {
+            width: 100px;
+        }
+
+        .time-label {
+            position: absolute;
+            top: -20px;
+            font-size: 12px;
+        }
+
+        .time-label-bottom {
+            position: absolute;
+            top: 60px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="timeline"></div>
+    <div id="message-container">
+        <!-- 12种颜色的消息块 -->
+        <div class="message" style="background-color: red; left: 0px;"></div>
+        <div class="message" style="background-color: blue; left: 15px;"></div>
+        <div class="message" style="background-color: green; left: 30px;"></div>
+        <div class="message" style="background-color: yellow; left: 45px;"></div>
+        <div class="message" style="background-color: orange; left: 60px;"></div>
+        <div class="message" style="background-color: purple; left: 75px;"></div>
+        <div class="message" style="background-color: pink; left: 90px;"></div>
+        <div class="message" style="background-color: brown; left: 105px;"></div>
+        <div class="message" style="background-color: gray; left: 120px;"></div>
+        <div class="message" style="background-color: cyan; left: 135px;"></div>
+        <div class="message" style="background-color: magenta; left: 150px;"></div>
+        <div class="message" style="background-color: lime; left: 165px;"></div>
+    </div>
+
+    <script>
+        const messageContainer = document.getElementById('message-container');
+        const timeline = document.getElementById('timeline');
+        let selectedMessage = null;
+
+        // 批量创建时间轴元素、时间标签和下方时间标签
+        const smallPeriods = [];
+        for (let i = 0; i < 8; i++) {
+            const smallPeriod = document.createElement('div');
+            smallPeriod.classList.add('time-period', 'small-period');
+            smallPeriod.style.left = `${i * 100}px`;
+            smallPeriods.push(smallPeriod);
+
+            const timeLabel = document.createElement('div');
+            timeLabel.classList.add('time-label');
+            timeLabel.style.left = `${i * 100}px`;
+            timeLabel.textContent = `${i * 25}ms`;
+            timeline.appendChild(timeLabel);
+
+            const timeLabelBottom = document.createElement('div');
+            timeLabelBottom.classList.add('time-label-bottom');
+            timeLabelBottom.style.left = `${i * 100}px`;
+            timeLabelBottom.textContent = `${i * 25}ms - ${(i + 1) * 25}ms`;
+            timeline.appendChild(timeLabelBottom);
+        }
+        // 一次性插入时间轴元素
+        smallPeriods.forEach(period => timeline.appendChild(period));
+
+        // 点击消息块选中
+        messageContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('message')) {
+                selectedMessage = e.target;
+            }
+        });
+
+        // 点击时间轴放置消息块
+        timeline.addEventListener('click', (e) => {
+            if (selectedMessage) {
+                const rect = timeline.getBoundingClientRect();
+                const offsetX = e.clientX - rect.left;
+                const columnIndex = Math.floor(offsetX / 100);
+
+                // 获取当前格子内的消息块
+                const messagesInColumn = Array.from(timeline.children).filter(child => {
+                    return child.classList.contains('message') && Math.floor(parseInt(child.style.left) / 100) === columnIndex;
+                });
+
+                // 获取选中消息块的颜色
+                const selectedColor = window.getComputedStyle(selectedMessage).backgroundColor;
+
+                // 检查当前小周期内是否已经存在相同颜色的消息块
+                const hasSameColor = messagesInColumn.some(message => {
+                    return window.getComputedStyle(message).backgroundColor === selectedColor;
+                });
+
+                if (!hasSameColor) {
+                    const startX = columnIndex * 100 + messagesInColumn.length * (5 + 2);
+                    const clonedMessage = selectedMessage.cloneNode(true);
+                    clonedMessage.style.left = `${startX}px`;
+                    clonedMessage.style.top = '5px';
+                    timeline.appendChild(clonedMessage);
+                }
+            }
+        });
+
+        // 右键单击取消刚刚排列的消息块
+        timeline.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (e.target.classList.contains('message')) {
+                timeline.removeChild(e.target);
+            }
+        });
+    </script>
+</body>
+
+</html>    
